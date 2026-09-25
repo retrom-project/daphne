@@ -83,6 +83,33 @@ def main() -> None:
         crash_handler,
         b'}catch(ex){console.error("DAPHNE_WORKER_EXCEPTION",ex);throw ex}}self.onmessage=handleMessage',
     )
+    # Emscripten proxies pthread fd_read to the browser main thread. Suspending
+    # that proxied callback with Asyncify returns a short read to the worker
+    # before the network result arrives. Keep the pthread asleep until the
+    # runtime Content I/O reader has filled the shared Wasm buffer.
+    worker_read = b'if(ENVIRONMENT_IS_PTHREAD)return proxyToMainThread(73,0,1,fd,iov,iovcnt,pnum);'
+    if payload.count(worker_read) != 1:
+        raise SystemExit("EMULATORJS_RUNTIME_WORKER_READ_INVALID")
+    payload = payload.replace(
+        worker_read,
+        b'if(ENVIRONMENT_IS_PTHREAD){var control=new Int32Array(new SharedArrayBuffer(8));'
+        b'postMessage({cmd:"retromContentRead",fd,iov,iovcnt,pnum,control:control.buffer});'
+        b'while(Atomics.load(control,0)===0)Atomics.wait(control,0,0);'
+        b'return Atomics.load(control,1)}',
+    )
+    main_message = b'var cmd=d.cmd;if(d.targetThread&&d.targetThread!=_pthread_self())'
+    if payload.count(main_message) != 1:
+        raise SystemExit("EMULATORJS_RUNTIME_MAIN_READ_INVALID")
+    payload = payload.replace(
+        main_message,
+        b'var cmd=d.cmd;if(cmd==="retromContentRead"){'
+        b'var control=new Int32Array(d.control);'
+        b'Promise.resolve().then(()=>Module.retromDaphneFdRead?.(d.fd,d.iov>>>0,d.iovcnt,d.pnum>>>0))'
+        b'.then(result=>result==null?_fd_read(d.fd,d.iov,d.iovcnt,d.pnum):result)'
+        b'.then(result=>{Atomics.store(control,1,result);Atomics.store(control,0,1);Atomics.notify(control,0)},'
+        b'error=>{err(error);Atomics.store(control,1,29);Atomics.store(control,0,1);Atomics.notify(control,0)});'
+        b'return}if(d.targetThread&&d.targetThread!=_pthread_self())',
+    )
     path.write_bytes(payload)
 
 
