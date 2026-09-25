@@ -20,5 +20,5 @@
     }
   ],
   "adapterAbi": "emulatorjs-state-v1",
-  "releaseAssets": ["daphne-wasm.data", "LICENSE", "source.tar.gz", "rpg-runtime-release.json"]
+  "releaseAssets": ["daphne-thread-wasm.data", "LICENSE", "source.tar.gz", "rpg-runtime-release.json"]
 }
