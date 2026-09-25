@@ -18,13 +18,15 @@ def main() -> None:
         b'Module["retromContentIOAsyncify"]=()=>Asyncify;var Asyncify={',
     )
     # callMain can suspend before the game loop is ready; EmulatorJS resumes it
-    # after Asyncify finishes the startup rewind.
+    # after Asyncify finishes the startup rewind. This build runs RetroArch's
+    # game loop on a pthread; the browser main thread must never resume its
+    # stale MainLoop function after an asynchronous Content I/O read.
     resume = b'if(typeof MainLoop!="undefined"&&MainLoop.func){MainLoop.resume()}'
     if payload.count(resume) != 1:
         raise SystemExit(f"EMULATORJS_RUNTIME_ASYNCIFY_INVALID:resume={payload.count(resume)}")
     payload = payload.replace(
         resume,
-        b'if(typeof MainLoop!="undefined"&&MainLoop.func&&!Module.retromContentIOStartupPending){MainLoop.resume()}',
+        b'if(typeof MainLoop!="undefined"&&MainLoop.func&&ENVIRONMENT_IS_PTHREAD&&!Module.retromContentIOStartupPending){MainLoop.resume()}',
     )
     # A single WASI fd_read may include several iovecs. Once FS.read starts
     # unwinding, leave this JS loop so Wasm can save its call stack.
