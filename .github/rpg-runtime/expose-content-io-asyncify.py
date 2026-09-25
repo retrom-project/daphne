@@ -43,6 +43,16 @@ def main() -> None:
     # SDL requests the Emscripten special target !canvas when it starts its
     # render thread. The pthread glue only recognizes #canvas and otherwise
     # passes !canvas to querySelector, which throws before the game starts.
+    # EmulatorJS leaves the DOM canvas ID empty. The transferred OffscreenCanvas
+    # is then keyed under an empty name, so receiveObjectTransfer cannot assign
+    # Module.canvas in the worker even though the transfer succeeded.
+    module_canvas_id = b'var moduleCanvasId=Module["canvas"]?.id||"";'
+    if payload.count(module_canvas_id) != 1:
+        raise SystemExit("EMULATORJS_RUNTIME_CANVAS_ID_INVALID")
+    payload = payload.replace(
+        module_canvas_id,
+        b'if(Module["canvas"]&&!Module["canvas"].id)Module["canvas"].id="retrom-daphne-canvas";var moduleCanvasId=Module["canvas"]?.id||"";',
+    )
     target = b'if(name=="#canvas"){if(!Module["canvas"])'
     if payload.count(target) != 1:
         raise SystemExit("EMULATORJS_RUNTIME_CANVAS_TARGET_INVALID")
