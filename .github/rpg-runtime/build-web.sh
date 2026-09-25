@@ -34,6 +34,24 @@ stage="$work/stage"
 mkdir -p "$stage"
 install -m 0644 "$work/raw/daphne_libretro.js" "$stage/"
 install -m 0644 "$work/raw/daphne_libretro.wasm" "$stage/"
+python3 - "$root/assets" "$output/daphne-resources.zip" <<'PY'
+from pathlib import Path
+from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
+import sys
+
+source, output = Path(sys.argv[1]), Path(sys.argv[2])
+members = sorted(path for path in source.rglob('*') if path.is_file() and
+                 path.suffix.lower() in {'.bmp', '.wav', '.ogg'} and
+                 path.parent.name in {'pics', 'sound'})
+if len(members) < 20:
+    raise SystemExit('DAPHNE_RESOURCES_INVALID')
+with ZipFile(output, 'w') as archive:
+    for path in members:
+        entry = ZipInfo(path.relative_to(source).as_posix(), (1980, 1, 1, 0, 0, 0))
+        entry.compress_type = ZIP_DEFLATED
+        entry.external_attr = 0o100644 << 16
+        archive.writestr(entry, path.read_bytes())
+PY
 cat "$root/LICENSE" "$work/raw/retroarch-COPYING" > "$stage/license.txt"
 printf '%s\n' '{"minimumEJSVersion":"4.2.2","version":"1.18"}' > "$stage/build.json"
 printf '%s\n' '{"name":"daphne","extensions":["zip"],"makeoptions":{"buildpath":"./","makescript":"Makefile","arguments":[]},"options":{},"save":false,"license":"LICENSE","repo":"https://github.com/retrom-project/libretro-daphne"}' > "$stage/core.json"
