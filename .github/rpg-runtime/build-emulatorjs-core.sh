@@ -41,7 +41,7 @@ install -m 0644 "$archive" "/work/retroarch/emulatorjs/${core_name}_libretro_ems
 install -m 0644 "$archive" /work/retroarch/libretro_emscripten.a
 
 emmake make -C /work/retroarch -f Makefile.emulatorjs \
-  HAVE_CHD=1 HAVE_THREADS=1 PTHREAD_POOL_SIZE=2 ASYNC=1 HAVE_OPENGLES3=1 \
+  HAVE_CHD=1 HAVE_THREADS=1 PROXY_TO_PTHREAD=1 PTHREAD_POOL_SIZE=4 ASYNC=1 HAVE_OPENGLES3=1 \
   STACK_SIZE=4194304 INITIAL_HEAP=134217728 \
   TARGET="${core_name}_libretro.js" -j"4"
 
