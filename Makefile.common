@@ -215,11 +215,7 @@ SOURCES_C += $(DAPHNE_MAIN_DIR)/src/SDL_error.c
 SOURCES_C += $(DAPHNE_MAIN_DIR)/src/stdlib/SDL_iconv.c
 SOURCES_C += $(DAPHNE_MAIN_DIR)/src/stdlib/SDL_string.c
 
-ifeq ($(platform),emscripten)
-THREAD_IMPLEMENTATION := generic
-else
 THREAD_IMPLEMENTATION := pthread
-endif
 SOURCES_C += $(DAPHNE_MAIN_DIR)/src/thread/$(THREAD_IMPLEMENTATION)/SDL_syscond.c
 SOURCES_C += $(DAPHNE_MAIN_DIR)/src/thread/$(THREAD_IMPLEMENTATION)/SDL_sysmutex.c
 SOURCES_C += $(DAPHNE_MAIN_DIR)/src/thread/$(THREAD_IMPLEMENTATION)/SDL_syssem.c

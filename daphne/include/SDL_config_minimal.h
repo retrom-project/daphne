@@ -60,8 +60,13 @@ typedef unsigned long uintptr_t;
 /* Enable the stub shared object loader (src/loadso/dummy/\*.c) */
 #define SDL_LOADSO_DISABLED 1
 
-/* Enable the stub thread support (src/thread/generic/\*.c) */
+/* Browser VLDP decoding uses pthreads in the Retrom build. */
+#if !defined(__EMSCRIPTEN_PTHREADS__)
 #define SDL_THREADS_DISABLED    1
+#else
+#define SDL_THREAD_PTHREAD 1
+#define SDL_THREAD_PTHREAD_RECURSIVE_MUTEX 1
+#endif
 
 /* Enable the stub timer support (src/timer/dummy/\*.c) */
 #define SDL_TIMERS_DISABLED 1

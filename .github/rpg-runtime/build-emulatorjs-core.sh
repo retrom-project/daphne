@@ -33,7 +33,7 @@ PY
 cd /work/core
 emmake make -f Makefile clean "$@"
 emmake make -j"4" -f Makefile platform=emscripten \
-  INITIAL_HEAP=268435456 AUTO_MEMORY_GROWTH=1 "$@"
+  INITIAL_HEAP=268435456 AUTO_MEMORY_GROWTH=1 FLAGS=-pthread "$@"
 
 archive=$(find . -maxdepth 1 -type f -name "${core_name}_libretro_emscripten.bc" -print)
 test -n "$archive" && test -f "$archive"
@@ -41,7 +41,7 @@ install -m 0644 "$archive" "/work/retroarch/emulatorjs/${core_name}_libretro_ems
 install -m 0644 "$archive" /work/retroarch/libretro_emscripten.a
 
 emmake make -C /work/retroarch -f Makefile.emulatorjs \
-  HAVE_CHD=1 HAVE_THREADS=0 PTHREAD_POOL_SIZE=0 ASYNC=1 HAVE_OPENGLES3=1 \
+  HAVE_CHD=1 HAVE_THREADS=1 PTHREAD_POOL_SIZE=2 ASYNC=1 HAVE_OPENGLES3=1 \
   STACK_SIZE=4194304 INITIAL_HEAP=134217728 \
   TARGET="${core_name}_libretro.js" -j"4"
 

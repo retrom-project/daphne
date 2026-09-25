@@ -39,7 +39,7 @@ printf '%s\n' '{"minimumEJSVersion":"4.2.2","version":"1.18"}' > "$stage/build.j
 printf '%s\n' '{"name":"daphne","extensions":["zip"],"makeoptions":{"buildpath":"./","makescript":"Makefile","arguments":[]},"options":{},"save":false,"license":"LICENSE","repo":"https://github.com/retrom-project/libretro-daphne"}' > "$stage/core.json"
 chmod 0644 "$stage/build.json" "$stage/core.json" "$stage/license.txt"
 
-(cd "$stage" && 7z a -mtm=off -mta=off -mtc=off -bd -bso0 -bsp0 -t7z "$output/daphne-wasm.data" \
+(cd "$stage" && 7z a -mtm=off -mta=off -mtc=off -bd -bso0 -bsp0 -t7z "$output/daphne-thread-wasm.data" \
   daphne_libretro.js daphne_libretro.wasm build.json core.json license.txt)
 install -m 0644 "$stage/license.txt" "$output/LICENSE"
 
