@@ -40,6 +40,16 @@ def main() -> None:
         b'if(Asyncify.state===Asyncify.State.Unwinding)return ret;'
         b'if(curr<0)return-1;',
     )
+    # SDL requests the Emscripten special target !canvas when it starts its
+    # render thread. The pthread glue only recognizes #canvas and otherwise
+    # passes !canvas to querySelector, which throws before the game starts.
+    target = b'if(name=="#canvas"){if(!Module["canvas"])'
+    if payload.count(target) != 1:
+        raise SystemExit("EMULATORJS_RUNTIME_CANVAS_TARGET_INVALID")
+    payload = payload.replace(
+        target,
+        b'if(name=="#canvas"||name=="!canvas"){if(!Module["canvas"])',
+    )
     path.write_bytes(payload)
 
 
