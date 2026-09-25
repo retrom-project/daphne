@@ -1,0 +1,5 @@
+Upstream README.md describes the original Daphne source as released under GPL.
+The exact applicable GPL version and the licenses of bundled dependencies
+have not yet been verified for this fork. This file is a provenance note,
+not a redistributable license bundle. Do not publish a binary release until
+the license texts and notices have been established from authoritative sources.

@@ -3,6 +3,7 @@ DAPHNE_MAIN_DIR := $(CORE_DIR)/daphne
 DAPHNE_DIR  := $(DAPHNE_MAIN_DIR)/daphne-1.0-src
 
 INCFLAGS    := -I$(CORE_DIR) \
+					-I$(CORE_DIR)/deps/zlib \
 					-I$(CORE_DIR)/deps/libogg/include \
 					-I$(CORE_DIR)/deps/libvorbis/include \
 					-I$(DAPHNE_MAIN_DIR)/include \
@@ -214,11 +215,16 @@ SOURCES_C += $(DAPHNE_MAIN_DIR)/src/SDL_error.c
 SOURCES_C += $(DAPHNE_MAIN_DIR)/src/stdlib/SDL_iconv.c
 SOURCES_C += $(DAPHNE_MAIN_DIR)/src/stdlib/SDL_string.c
 
-SOURCES_C += $(DAPHNE_MAIN_DIR)/src/thread/pthread/SDL_syscond.c
-SOURCES_C += $(DAPHNE_MAIN_DIR)/src/thread/pthread/SDL_sysmutex.c
-SOURCES_C += $(DAPHNE_MAIN_DIR)/src/thread/pthread/SDL_syssem.c
-SOURCES_C += $(DAPHNE_MAIN_DIR)/src/thread/pthread/SDL_systhread.c
-SOURCES_C += $(DAPHNE_MAIN_DIR)/src/thread/pthread/SDL_systls.c
+ifeq ($(platform),emscripten)
+THREAD_IMPLEMENTATION := generic
+else
+THREAD_IMPLEMENTATION := pthread
+endif
+SOURCES_C += $(DAPHNE_MAIN_DIR)/src/thread/$(THREAD_IMPLEMENTATION)/SDL_syscond.c
+SOURCES_C += $(DAPHNE_MAIN_DIR)/src/thread/$(THREAD_IMPLEMENTATION)/SDL_sysmutex.c
+SOURCES_C += $(DAPHNE_MAIN_DIR)/src/thread/$(THREAD_IMPLEMENTATION)/SDL_syssem.c
+SOURCES_C += $(DAPHNE_MAIN_DIR)/src/thread/$(THREAD_IMPLEMENTATION)/SDL_systhread.c
+SOURCES_C += $(DAPHNE_MAIN_DIR)/src/thread/$(THREAD_IMPLEMENTATION)/SDL_systls.c
 SOURCES_C += $(DAPHNE_MAIN_DIR)/src/thread/SDL_thread.c
 SOURCES_C += $(DAPHNE_MAIN_DIR)/src/timer/libretro/SDL_systimer.c
 

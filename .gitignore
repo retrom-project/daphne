@@ -1,4 +1,5 @@
 *.bc
+.retrom-build/
 *.js
 *.o
 *.exe

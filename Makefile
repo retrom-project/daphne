@@ -208,6 +208,8 @@ endif
 # emscripten
 else ifeq ($(platform), emscripten)
 	TARGET := $(TARGET_NAME)_libretro_emscripten.bc
+	CXXFLAGS += -std=c++11
+	AR := emar
 else
    CC ?= gcc
    TARGET := $(TARGET_NAME)_libretro.dll
@@ -255,8 +257,11 @@ CFLAGS += -D__LIBRETRO__
 all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
-
+ifeq ($(platform),emscripten)
+	$(AR) rcs $@ $(OBJECTS)
+else
 	$(CXX) $(fpic) $(SHARED) $(INCLUDES) -o $@ $(OBJECTS) $(LIBS) $(LDFLAGS) -lm
+endif
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) $(fpic) -c -o $@ $<
@@ -268,4 +273,3 @@ clean:
 	rm -f $(OBJECTS) $(TARGET)
 
 .PHONY: clean
-

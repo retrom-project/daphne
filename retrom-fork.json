@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "forkRepository": "https://github.com/retrom-project/daphne",
+  "defaultBranch": "retrom/g6f1695dd1f37",
+  "upstreamMirrorBranch": "master",
+  "upstreams": [
+    {
+      "role": "emulatorjs-core",
+      "repository": "https://github.com/libretro/daphne",
+      "refType": "COMMIT",
+      "ref": "6f1695dd1f376060666eec0a416ff56bb6c9cccc",
+      "commit": "6f1695dd1f376060666eec0a416ff56bb6c9cccc"
+    },
+    {
+      "role": "emulatorjs-retroarch-linker",
+      "repository": "https://github.com/EmulatorJS/RetroArch",
+      "refType": "COMMIT",
+      "ref": "6dd4353937ef48b6ec0bfbdbb15d1c5992d86927",
+      "commit": "6dd4353937ef48b6ec0bfbdbb15d1c5992d86927"
+    }
+  ],
+  "adapterAbi": "emulatorjs-state-v1",
+  "releaseAssets": ["daphne-wasm.data", "LICENSE", "source.tar.gz", "rpg-runtime-release.json"]
+}
