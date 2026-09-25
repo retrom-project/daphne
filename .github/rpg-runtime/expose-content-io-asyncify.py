@@ -50,6 +50,27 @@ def main() -> None:
         target,
         b'if(name=="#canvas"||name=="!canvas"){if(!Module["canvas"])',
     )
+    canvas_lookup = b'return GL.offscreenCanvases[target.substr(1)]||target=="canvas"&&Object.keys(GL.offscreenCanvases)[0]||typeof document!="undefined"&&document.querySelector(target)'
+    if payload.count(canvas_lookup) != 1:
+        raise SystemExit("EMULATORJS_RUNTIME_CANVAS_LOOKUP_INVALID")
+    payload = payload.replace(
+        canvas_lookup,
+        b'return target=="!canvas"&&Module.canvas||' + canvas_lookup.removeprefix(b'return '),
+    )
+    event_lookup = b'var domElement=specialHTMLTargets[target]||(typeof document!="undefined"?document.querySelector(target):null);'
+    if payload.count(event_lookup) != 1:
+        raise SystemExit("EMULATORJS_RUNTIME_EVENT_TARGET_INVALID")
+    payload = payload.replace(
+        event_lookup,
+        b'var domElement=(target=="!canvas"&&Module.canvas)||specialHTMLTargets[target]||(typeof document!="undefined"?document.querySelector(target):null);',
+    )
+    crash_handler = b'}catch(ex){__emscripten_thread_crashed();throw ex}}self.onmessage=handleMessage'
+    if payload.count(crash_handler) != 1:
+        raise SystemExit("EMULATORJS_RUNTIME_WORKER_ERROR_INVALID")
+    payload = payload.replace(
+        crash_handler,
+        b'}catch(ex){console.error("DAPHNE_WORKER_EXCEPTION",ex);throw ex}}self.onmessage=handleMessage',
+    )
     path.write_bytes(payload)
 
 
