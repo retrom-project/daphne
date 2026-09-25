@@ -12,7 +12,7 @@ def main() -> None:
     payload = path.read_bytes()
     marker = b"var Asyncify={"
     if payload.count(marker) != 1 or b"retromContentIOAsyncify" in payload:
-        raise SystemExit("EMULATORJS_RUNTIME_ASYNCIFY_INVALID")
+        raise SystemExit(f"EMULATORJS_RUNTIME_ASYNCIFY_INVALID:marker={payload.count(marker)}")
     payload = payload.replace(
         marker,
         b'Module["retromContentIOAsyncify"]=()=>Asyncify;var Asyncify={',
@@ -21,19 +21,22 @@ def main() -> None:
     # after Asyncify finishes the startup rewind.
     resume = b'if(typeof MainLoop!="undefined"&&MainLoop.func){MainLoop.resume()}'
     if payload.count(resume) != 1:
-        raise SystemExit("EMULATORJS_RUNTIME_ASYNCIFY_INVALID")
+        raise SystemExit(f"EMULATORJS_RUNTIME_ASYNCIFY_INVALID:resume={payload.count(resume)}")
     payload = payload.replace(
         resume,
         b'if(typeof MainLoop!="undefined"&&MainLoop.func&&!Module.retromContentIOStartupPending){MainLoop.resume()}',
     )
     # A single WASI fd_read may include several iovecs. Once FS.read starts
     # unwinding, leave this JS loop so Wasm can save its call stack.
-    readv = b'var curr=FS.read(stream,HEAP8,ptr,len,offset);if(curr<0)return-1;'
-    if payload.count(readv) != 1:
-        raise SystemExit("EMULATORJS_RUNTIME_ASYNCIFY_INVALID")
+    readv = next((candidate for candidate in (
+        b'var curr=FS.read(stream,HEAP8,ptr,len,offset);if(curr<0)return-1;',
+        b'var curr=FS.read(stream,GROWABLE_HEAP_I8(),ptr,len,offset);if(curr<0)return-1;',
+    ) if payload.count(candidate) == 1), None)
+    if readv is None:
+        raise SystemExit("EMULATORJS_RUNTIME_ASYNCIFY_INVALID:readv")
     payload = payload.replace(
         readv,
-        b'var curr=FS.read(stream,HEAP8,ptr,len,offset);'
+        readv.split(b'if(curr<0)')[0] +
         b'if(Asyncify.state===Asyncify.State.Unwinding)return ret;'
         b'if(curr<0)return-1;',
     )
