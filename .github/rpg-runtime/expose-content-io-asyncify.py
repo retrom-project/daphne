@@ -83,6 +83,19 @@ def main() -> None:
         crash_handler,
         b'}catch(ex){console.error("DAPHNE_WORKER_EXCEPTION",ex);throw ex}}self.onmessage=handleMessage',
     )
+    # RetroArch's stock GLSL ES 1 shader emits this extension directive even
+    # after Emscripten has created a WebGL2 context. WebGL2 already provides
+    # derivatives; the stale directive produces a driver warning on SwiftShader.
+    shader_source = b'var source=GL.getSource(shader,count,string,length);GLctx.shaderSource(GL.shaders[shader],source)'
+    if payload.count(shader_source) != 1:
+        raise SystemExit("EMULATORJS_RUNTIME_SHADER_SOURCE_INVALID")
+    payload = payload.replace(
+        shader_source,
+        b'var source=GL.getSource(shader,count,string,length);'
+        b'if(typeof WebGL2RenderingContext!="undefined"&&GLctx instanceof WebGL2RenderingContext)'
+        b'source=source.replace(/#extension\\s+GL_OES_standard_derivatives\\s*:\\s*enable/g,"");'
+        b'GLctx.shaderSource(GL.shaders[shader],source)',
+    )
     # Emscripten proxies pthread fd_read to the browser main thread. Suspending
     # that proxied callback with Asyncify returns a short read to the worker
     # before the network result arrives. Keep the pthread asleep until the
