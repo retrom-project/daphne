@@ -19,6 +19,16 @@ git -C /work/retroarch remote add origin https://github.com/EmulatorJS/RetroArch
 git -C /work/retroarch fetch -q --depth 1 origin 6dd4353937ef48b6ec0bfbdbb15d1c5992d86927
 git -C /work/retroarch checkout -q --detach FETCH_HEAD
 install -m 0644 /work/retroarch/COPYING /output/retroarch-COPYING
+python3 - <<'PY'
+from pathlib import Path
+
+path = Path('/work/retroarch/Makefile.emulatorjs')
+source = path.read_text()
+setting = 'LDFLAGS += -s ASYNCIFY=1 -s ASYNCIFY_STACK_SIZE=8192\n'
+if source.count(setting) != 1 or 'ASYNCIFY_IMPORTS=' in source:
+    raise SystemExit('EMULATORJS_RUNTIME_ASYNCIFY_INVALID')
+path.write_text(source.replace(setting, setting.rstrip('\n') + ' -s ASYNCIFY_IMPORTS=wasi_snapshot_preview1.fd_read\n', 1))
+PY
 
 cd /work/core
 emmake make -f Makefile clean "$@"
@@ -35,5 +45,6 @@ emmake make -C /work/retroarch -f Makefile.emulatorjs \
   STACK_SIZE=4194304 INITIAL_HEAP=134217728 \
   TARGET="${core_name}_libretro.js" -j"4"
 
+python3 /recipe/expose-content-io-asyncify.py "/work/retroarch/${core_name}_libretro.js"
 install -m 0644 "/work/retroarch/${core_name}_libretro.js" /output/
 install -m 0644 "/work/retroarch/${core_name}_libretro.wasm" /output/
