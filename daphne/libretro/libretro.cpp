@@ -27,6 +27,7 @@
 #include "libretro.h"
 #include "libretro_daphne.h"
 #include "../daphne-1.0-src/io/input.h"
+#include "../daphne-1.0-src/sound/sound.h"
 #include "../daphne-1.0-src/daphne.h"
 #include "../daphne-1.0-src/game/game.h"
 #include "../main_android.h"
@@ -416,28 +417,19 @@ void retro_run(void)
 		// float analogX = (float)input_state_cb(n_port, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X) / 32768.0f;
 	}
 
-#if 0
-	int ab_ndx = -1;
-	int ab_frames = 0;
-	int16_t * ab_buffer	= NULL;
-   ab_buffer = get_ab_waiting(&ab_ndx, &ab_frames);
-   if (audio_batch_cb)
-      audio_batch_cb(ab_buffer, ab_frames);
-   set_ab_streaming_done(ab_ndx);
-#endif
-
-	// Total hack for clearing some buffers.
-	/*
-	int testhacklimit;
-	testhacklimit = 40;
-	ab_buffer = get_ab_waiting(&ab_ndx, &ab_frames);
-	while (ab_buffer && testhacklimit)
+	// Daphne's sound mixer is not driven by SDL in the libretro build. Drain
+	// one stereo buffer per video frame and pass it to the frontend.
+	constexpr size_t audio_frames = DAPHNE_AUDIO_SAMPLE_RATE / 60;
+	int16_t audio_samples[audio_frames * 2] = {};
+	if (get_sound_initialized())
+		audio_callback(NULL, reinterpret_cast<uint8_t *>(audio_samples), sizeof(audio_samples));
+	if (audio_batch_cb)
+		audio_batch_cb(audio_samples, audio_frames);
+	else if (audio_cb)
 	{
-		set_ab_streaming_done(ab_ndx);
-		testhacklimit--;
-		if (testhacklimit) ab_buffer = get_ab_waiting(&ab_ndx, &ab_frames);
+		for (size_t frame = 0; frame < audio_frames; frame++)
+			audio_cb(audio_samples[frame * 2], audio_samples[frame * 2 + 1]);
 	}
-	*/
 
 
 	// Does:		g_game->start()
