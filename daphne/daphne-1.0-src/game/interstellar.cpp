@@ -824,10 +824,48 @@ void interstellar::draw_16x16(int character_number, int xcoord, int ycoord, int 
 
 unsigned interstellar::get_libretro_button_map(unsigned id)
 {
+   switch (id)
+   {
+      case RETRO_DEVICE_ID_JOYPAD_SELECT:
+         return SWITCH_COIN1;
+      case RETRO_DEVICE_ID_JOYPAD_START:
+         return SWITCH_START1;
+      case RETRO_DEVICE_ID_JOYPAD_B:
+         return SWITCH_BUTTON1; // Fazer
+      case RETRO_DEVICE_ID_JOYPAD_A:
+         return SWITCH_BUTTON2; // Burn
+      case RETRO_DEVICE_ID_JOYPAD_UP:
+         return SWITCH_UP;
+      case RETRO_DEVICE_ID_JOYPAD_DOWN:
+         return SWITCH_DOWN;
+      case RETRO_DEVICE_ID_JOYPAD_LEFT:
+         return SWITCH_LEFT;
+      case RETRO_DEVICE_ID_JOYPAD_RIGHT:
+         return SWITCH_RIGHT;
+   }
    return SWITCH_NOTHING;
 }
 
 const char *interstellar::get_libretro_button_name(unsigned id)
 {
+   switch (id)
+   {
+      case RETRO_DEVICE_ID_JOYPAD_SELECT:
+         return "Coin Insert";
+      case RETRO_DEVICE_ID_JOYPAD_START:
+         return "Start";
+      case RETRO_DEVICE_ID_JOYPAD_B:
+         return "Fazer";
+      case RETRO_DEVICE_ID_JOYPAD_A:
+         return "Burn";
+      case RETRO_DEVICE_ID_JOYPAD_UP:
+         return "Up";
+      case RETRO_DEVICE_ID_JOYPAD_DOWN:
+         return "Down";
+      case RETRO_DEVICE_ID_JOYPAD_LEFT:
+         return "Left";
+      case RETRO_DEVICE_ID_JOYPAD_RIGHT:
+         return "Right";
+   }
    return "N/A";
 }
